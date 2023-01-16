@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "848009703051",
+    "project_id": "be-safe-dcd9b",
+    "storage_bucket": "be-safe-dcd9b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:848009703051:android:2438c0aee8ab111483ee8e",
+        "android_client_info": {
+          "package_name": "com.example.be_safe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "848009703051-ttjd8h18j2i223s4lpgls6tnhld60csb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeqMlwKXN649s9Ro2TnNwuA9SM8BmtduQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "848009703051-ttjd8h18j2i223s4lpgls6tnhld60csb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "848009703051-lu61jnnfgdlmtujoridf01km62h15qur.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.beSafe"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
