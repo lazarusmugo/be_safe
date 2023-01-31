@@ -31,55 +31,108 @@ class _RegisterViewState extends State<RegisterView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register'),
+        backgroundColor: Colors.purple,
+        centerTitle: true,
       ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            enableSuggestions: false,
-            autocorrect: false,
-            decoration: const InputDecoration(hintText: 'Enter your email'),
-          ),
-          TextField(
-            controller: _password,
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-            decoration: const InputDecoration(hintText: 'Enter your password'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final email = _email.text;
-              final password = _password.text;
+      body: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple,
+            Colors.blue,
+          ],
+        )),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 5,
+            ),
+            TextField(
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              enableSuggestions: false,
+              autocorrect: false,
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: const BorderSide(
+                    width: 4,
+                    color: Colors.black,
+                  ),
+                ),
+                hintText: 'Enter your email',
+                hintStyle: const TextStyle(fontSize: 20.0, color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _password,
+              obscureText: true,
+              enableSuggestions: false,
+              autocorrect: false,
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: const BorderSide(
+                    width: 4,
+                    color: Colors.black,
+                  ),
+                ),
+                hintText: 'Enter your password',
+                hintStyle: const TextStyle(fontSize: 20.0, color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () async {
+                final email = _email.text;
+                final password = _password.text;
 
-              try {
-                final userCredential =
-                    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                  email: email,
-                  password: password,
-                );
-                print(userCredential);
-              } on FirebaseAuthException catch (e) {
-                if (e.code == 'weak-password') {
-                  print('weak password');
-                } else if (e.code == 'email-already-in-use') {
-                  print('email already in use');
-                } else if (e.code == 'invalid-email') {
-                  print('invalid email');
+                try {
+                  final userCredential = await FirebaseAuth.instance
+                      .createUserWithEmailAndPassword(
+                    email: email,
+                    password: password,
+                  );
+                  print(userCredential);
+                } on FirebaseAuthException catch (e) {
+                  if (e.code == 'weak-password') {
+                    print('weak password');
+                  } else if (e.code == 'email-already-in-use') {
+                    print('email already in use');
+                  } else if (e.code == 'invalid-email') {
+                    print('invalid email');
+                  }
                 }
-              }
-            },
-            child: const Text('Register'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/login/', (route) => false);
-            },
-            child: const Text('Already Registered? Login here'),
-          )
-        ],
+              },
+              child: const Text(
+                'Register',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/login/', (route) => false);
+              },
+              child: const Text(
+                'Already Registered? Login here',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/verifyEmail/', (route) => false);
+              },
+              child: const Text('Verify your email ',
+                  style: TextStyle(color: Colors.white)),
+            )
+          ],
+        ),
       ),
     );
   }
