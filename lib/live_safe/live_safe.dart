@@ -1,12 +1,9 @@
 import 'package:be_safe/live_safe/hotels_card.dart';
 import 'package:be_safe/live_safe/pharmacy_card.dart';
 import 'package:be_safe/live_safe/police_station_card.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'bus_station_card.dart';
 import 'hospital_card.dart';
 
@@ -20,19 +17,30 @@ class LiveSafe extends StatefulWidget {
 class _LiveSafeState extends State<LiveSafe> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 90,
-      width: MediaQuery.of(context).size.width,
-      child: ListView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          children: const [
-            PoliceStationCard(onMapFunction: openMap),
-            Hospital(onMapFunction: openMap),
-            BusStationCard(onMapFunction: openMap),
-            PharmacyCard(onMapFunction: openMap),
-            HotelsCard(onMapFunction: openMap)
-          ]),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('HomePage'),
+        backgroundColor: Colors.blue,
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        // ignore: sized_box_for_whitespace
+        child: Container(
+          height: 90,
+          width: MediaQuery.of(context).size.width,
+          child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              children: const [
+                PoliceStationCard(onMapFunction: openMap),
+                Hospital(onMapFunction: openMap),
+                BusStationCard(onMapFunction: openMap),
+                PharmacyCard(onMapFunction: openMap),
+                HotelsCard(onMapFunction: openMap)
+              ]),
+        ),
+      ),
     );
   }
 
