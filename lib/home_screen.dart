@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:be_safe/bottom%20screens/chat_page.dart';
 import 'package:be_safe/bottom%20screens/contacts_page.dart';
 import 'package:be_safe/bottom%20screens/profile_page.dart';
@@ -5,6 +7,8 @@ import 'package:be_safe/bottom%20screens/settings_page.dart';
 import 'package:be_safe/live_safe/live_safe.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+
+import 'views/maps_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final screens = [
-    const LiveSafe(),
+    LiveSafe(),
     const ChatsPage(),
     const ContactsPage(),
     const ProfilePage(),
@@ -32,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: screens[index],
       bottomNavigationBar: Theme(
         data: Theme.of(context)
-            .copyWith(iconTheme: IconThemeData(color: Colors.white)),
+            .copyWith(iconTheme: const IconThemeData(color: Colors.white)),
         child: CurvedNavigationBar(
             items: const [
               Icon(Icons.home, size: 30),

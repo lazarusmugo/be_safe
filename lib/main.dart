@@ -54,14 +54,16 @@ class HomePage extends StatelessWidget {
 
                   return const HomeScreen();
                 } else {
+                  return const HomeScreen();
                   return VerifyEmailView();
                 }
               } else {
+                return const HomeScreen();
                 return const LoginView();
               }
 
-            //return const LoginView();
-            // return const HomeScreen();
+              // return const LoginView();
+              return const HomeScreen();
 
             //return const VerifyEmailView();
             default:

@@ -4,12 +4,11 @@ import 'package:be_safe/live_safe/police_station_card.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../views/maps_view.dart';
 import 'bus_station_card.dart';
 import 'hospital_card.dart';
 
 class LiveSafe extends StatefulWidget {
-  const LiveSafe({super.key});
-
   @override
   State<LiveSafe> createState() => _LiveSafeState();
 }
@@ -23,23 +22,32 @@ class _LiveSafeState extends State<LiveSafe> {
         backgroundColor: Colors.blue,
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        // ignore: sized_box_for_whitespace
-        child: Container(
-          height: 90,
-          width: MediaQuery.of(context).size.width,
-          child: ListView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              children: const [
-                PoliceStationCard(onMapFunction: openMap),
-                Hospital(onMapFunction: openMap),
-                BusStationCard(onMapFunction: openMap),
-                PharmacyCard(onMapFunction: openMap),
-                HotelsCard(onMapFunction: openMap)
-              ]),
-        ),
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Container(
+              height: 100,
+              width: MediaQuery.of(context).size.width,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                children: const [
+                  PoliceStationCard(onMapFunction: openMap),
+                  Hospital(onMapFunction: openMap),
+                  BusStationCard(onMapFunction: openMap),
+                  PharmacyCard(onMapFunction: openMap),
+                  HotelsCard(onMapFunction: openMap)
+                ],
+              ),
+            ),
+          ),
+          // const SizedBox(height: 10),
+          Expanded(
+              child: MapsView(
+            key: UniqueKey(),
+          )),
+        ],
       ),
     );
   }
