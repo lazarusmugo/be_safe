@@ -1,15 +1,12 @@
 import 'package:be_safe/home_screen.dart';
 import 'package:be_safe/views/login_view.dart';
 import 'package:be_safe/views/register_view.dart';
-import 'package:be_safe/views/sample.dart';
 import 'package:be_safe/views/verify_email_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +32,7 @@ void main() {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +51,11 @@ class HomePage extends StatelessWidget {
 
                   return const HomeScreen();
                 } else {
-                  return const HomeScreen();
                   return VerifyEmailView();
                 }
               } else {
-                return const HomeScreen();
-                return const LoginView();
+                return LoginView();
               }
-
-              // return const LoginView();
-              return const HomeScreen();
-
-            //return const VerifyEmailView();
             default:
               return const CircularProgressIndicator();
           }

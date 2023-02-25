@@ -108,14 +108,15 @@ class _LoginViewState extends State<LoginView> {
                         password: password,
                       );
                       print(userCredential);
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          '/homescreen/', (route) => false);
                     } on FirebaseAuthException catch (e) {
                       if (e.code == 'user-not-found') {
                         print('User not found');
                       } else if (e.code == 'wrong-password') {
                         print('wrong password');
                       } else {
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                            '/homescreen/', (route) => false);
+                        print('Error: ${e.toString()}');
                       }
                     }
                   },

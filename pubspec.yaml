@@ -50,6 +50,11 @@ dependencies:
   geolocator: ^9.0.2
   provider: ^3.0.0
   location: ^2.3.5
+  contacts_service: ^0.6.3
+  permission_handler: ^10.2.0
+  cloud_firestore: ^4.4.3
+  firebase_dynamic_links: ^5.0.15
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:
