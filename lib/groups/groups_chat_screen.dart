@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'create_group_screen.dart';
 import 'package:intl/intl.dart';
 
-class GroupChatScreen extends StatelessWidget {
+class GroupChatScreen extends StatefulWidget {
   final String groupId;
 
   const GroupChatScreen({Key? key, required this.groupId}) : super(key: key);
+
+  @override
+  _GroupChatScreenState createState() => _GroupChatScreenState();
+}
+
+class _GroupChatScreenState extends State<GroupChatScreen> {
+  final _messageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +29,7 @@ class GroupChatScreen extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('groups')
-                  .doc(groupId)
+                  .doc(widget.groupId)
                   .collection('messages')
                   .orderBy('timestamp')
                   .snapshots(),
@@ -62,6 +65,7 @@ class GroupChatScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: TextFormField(
+                    controller: _messageController,
                     decoration: const InputDecoration(
                       hintText: 'Type a message',
                       border: InputBorder.none,
@@ -71,7 +75,7 @@ class GroupChatScreen extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () {
-                  // TODO: Send message to Firebase Cloud Firestore
+                  _sendMessage();
                 },
                 icon: const Icon(Icons.send),
               ),
@@ -79,17 +83,21 @@ class GroupChatScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateGroupScreen(),
-            ),
-          );
-        },
-        child: const Icon(Icons.group_add),
-      ),
     );
+  }
+
+  void _sendMessage() {
+    final text = _messageController.text.trim();
+    if (text.isNotEmpty) {
+      FirebaseFirestore.instance
+          .collection('groups')
+          .doc(widget.groupId)
+          .collection('messages')
+          .add({
+        'text': text,
+        'timestamp': Timestamp.now(),
+      });
+      _messageController.clear();
+    }
   }
 }

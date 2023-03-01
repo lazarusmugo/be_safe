@@ -3,7 +3,7 @@ import 'package:be_safe/live_safe/pharmacy_card.dart';
 import 'package:be_safe/live_safe/police_station_card.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import '../views/maps_view.dart';
 import 'bus_station_card.dart';

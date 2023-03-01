@@ -55,6 +55,12 @@ dependencies:
   cloud_firestore: ^4.4.3
   firebase_dynamic_links: ^5.0.15
   uuid: ^3.0.7
+  share: ^2.0.4
+  fluttericon: ^2.0.0
+  google_sign_in: ^6.0.1
+  image_picker: ^0.8.6+4
+  firebase_storage: ^11.0.14
+
 
 dev_dependencies:
   flutter_test:
