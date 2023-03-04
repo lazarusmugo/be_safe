@@ -1,10 +1,9 @@
 import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -14,12 +13,14 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _imagePicker = ImagePicker();
   XFile? _image;
-
-  bool _isLoading = false;
+  bool _isEditing = false;
+  FocusNode _usernameFocusNode = FocusNode();
+  late String imageUrl;
 
   Future<void> _pickImage() async {
     final pickedImage =
@@ -43,35 +44,54 @@ class _ProfilePageState extends State<ProfilePage> {
         firebase_storage.SettableMetadata(contentType: 'image/jpeg');
 
     final uploadTask = ref.putFile(image, metadata);
-    final snapshot = await uploadTask.whenComplete(() => null);
+    final snapshotTask = uploadTask.whenComplete(() {});
+    final snapshot = await snapshotTask;
 
     return await snapshot.ref.getDownloadURL();
   }
 
   Future<void> _submitForm() async {
-    final isValid = _formKey.currentState!.validate();
-
-    if (!isValid) {
-      return;
-    }
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return;
     }
 
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (username.isEmpty && email.isEmpty && phone.isEmpty && _image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No changes made')),
+      );
+      return;
+    }
+
     setState(() {
-      _isLoading = true;
+      _isEditing = false;
     });
 
     try {
-      final imageUrl =
-          _image != null ? await _uploadImage(File(_image!.path)) : null;
+      String? imageUrl;
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'phone': _phoneController.text.trim(),
-        'imageUrl': imageUrl,
-      }, SetOptions(merge: true));
+      if (_image != null) {
+        imageUrl = await _uploadImage(File(_image!.path));
+      }
+
+      final userData = {
+        'username': username,
+        'email': email,
+        'phone': phone,
+      };
+
+      if (imageUrl != null) {
+        userData['imageUrl'] = imageUrl;
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+            userData,
+            SetOptions(merge: true),
+          );
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),
@@ -79,20 +99,32 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text('An error occurred while updating your profile: $error')),
+          content:
+              Text('An error occurred while updating your profile: $error'),
+        ),
       );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
   @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance.collection('users').doc(user.uid).get().then(
+        (doc) {
+          if (doc.exists) {
+            final userData = doc.data() as Map<String, dynamic>;
+            setState(() {
+              _usernameController.text = userData['username'] ?? '';
+              _emailController.text = user.email ?? '';
+              _phoneController.text = userData['phone'] ?? '';
+              imageUrl = userData['imageUrl'] ?? '';
+            });
+          }
+        },
+      );
+    }
   }
 
   @override
@@ -101,61 +133,69 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user == null) {
       return const Scaffold(
         body: Center(
-          child: Text('You need to be logged in to view this page'),
+          child: Text('You need to be signed in to view the profile page'),
         ),
       );
     }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Center(
-                child: GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage:
-                        _image != null ? FileImage(File(_image!.path)) : null,
-                    child: _image == null
-                        ? const Icon(Icons.camera_alt, size: 30)
-                        : null,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  hintText: 'Enter your phone number',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your phone number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _submitForm,
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Update Profile'),
-              ),
-            ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              setState(() {
+                _isEditing = true;
+              });
+            },
           ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              onTap: _isEditing ? _pickImage : null,
+              child: CircleAvatar(
+                radius: 80,
+                backgroundColor: Colors.grey[300],
+                /* backgroundImage: _image == null
+                    ? (user.photoURL != null
+                            ? NetworkImage(user.photoURL!)
+                            : const AssetImage('assets/default_user.png'))
+                        as ImageProvider<Object>
+                    : FileImage(File(_image!.path)),*/
+                backgroundImage: imageUrl != null && imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _usernameController,
+              focusNode: _usernameFocusNode,
+              decoration: const InputDecoration(labelText: 'Username'),
+              enabled: _isEditing,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              enabled: false,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _phoneController,
+              decoration: const InputDecoration(labelText: 'Phone'),
+              enabled: _isEditing,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _isEditing ? _submitForm : null,
+              child: const Text('Save'),
+            ),
+          ],
         ),
       ),
     );

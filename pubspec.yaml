@@ -94,6 +94,7 @@ flutter:
     - assets/bus-stop.png
     - assets/pharmacy.png
     - assets/hotel.png
+    - assets/default_user.png
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
