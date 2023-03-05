@@ -49,7 +49,6 @@ dependencies:
   google_maps_flutter_web: ^0.4.0+5
   geolocator: ^9.0.2
   provider: ^3.0.0
-  location: ^2.3.5
   contacts_service: ^0.6.3
   permission_handler: ^10.2.0
   cloud_firestore: ^4.4.3
@@ -62,6 +61,8 @@ dependencies:
   firebase_storage: ^11.0.14
   shared_preferences: ^2.0.18
   flutter_secure_storage: ^8.0.0
+  intl: ^0.17.0
+  location: ^4.3.0-nullsafety.0
 
 
 dev_dependencies:

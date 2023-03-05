@@ -1,3 +1,4 @@
+import 'package:be_safe/groups/group_map_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -46,12 +47,41 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         title: const Text('Group Chat'),
         backgroundColor: Colors.blue,
         centerTitle: true,
       ),
       body: Column(
         children: [
+          Container(
+            width: 200,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.only(
+                bottomRight: Radius.circular(20.0),
+                bottomLeft: Radius.circular(20.0),
+              ),
+            ),
+            padding: const EdgeInsets.all(2),
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const GroupMapScreen()),
+                );
+              },
+              child: const Text(
+                'Open Group Map',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white),
+              ),
+            ),
+          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -88,44 +118,48 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         .map((doc) => doc.data() as Map<String, dynamic>)
                         .toList();
 
-                    return Expanded(
-                      child: ListView.builder(
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: messages.length,
+                            itemBuilder: (context, index) {
+                              final message = messages[index];
 
-                          return StreamBuilder<DocumentSnapshot>(
-                            stream: FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(message['userId'])
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasError) {
-                                // Handle the error state
-                                return const Center(
-                                    child: Text(
-                                        "An error occurred while fetching data"));
-                              } else if (!snapshot.hasData) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
+                              return StreamBuilder<DocumentSnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(message['userId'])
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasError) {
+                                    // Handle the error state
+                                    return const Center(
+                                        child: Text(
+                                            "An error occurred while fetching data"));
+                                  } else if (!snapshot.hasData) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
 
-                              final userData =
-                                  snapshot.data!.data() as Map<String, dynamic>;
+                                  final userData = snapshot.data!.data()
+                                      as Map<String, dynamic>;
 
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ChatBubble(
-                                  userImageUrl: message['imageUrl'],
-                                  name: message['userName'],
-                                  message: message,
-                                  userId: message['userId'],
-                                ),
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ChatBubble(
+                                      userImageUrl: message['imageUrl'],
+                                      name: message['userName'],
+                                      message: message,
+                                      userId: message['userId'],
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 );
