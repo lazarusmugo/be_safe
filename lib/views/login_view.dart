@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginView extends StatefulWidget {
-  const LoginView({super.key});
+  const LoginView({Key? key}) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -11,11 +12,13 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  bool _rememberMe = false;
 
   @override
   void initState() {
     _email = TextEditingController();
     _password = TextEditingController();
+    _loadRememberMeStatus();
     super.initState();
   }
 
@@ -26,10 +29,39 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  Future<void> _saveUserCredentials(String email, String password) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('email', email);
+    await prefs.setString('password', password);
+  }
+
+  void _deleteUserCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('email');
+    prefs.remove('password');
+  }
+
+  void _loadRememberMeStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _rememberMe = prefs.getBool('rememberMe') ?? false;
+      if (_rememberMe) {
+        _email.text = prefs.getString('email') ?? '';
+        _password.text = prefs.getString('password') ?? '';
+      }
+    });
+  }
+
+  void _saveRememberMeStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('rememberMe', _rememberMe);
+    prefs.setString('email', _email.text);
+    prefs.setString('password', _password.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.white,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -97,6 +129,23 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
                 const SizedBox(height: 5),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (value) {
+                        setState(() {
+                          _rememberMe = value!;
+                          _saveRememberMeStatus();
+                        });
+                      },
+                    ),
+                    const Text(
+                      'Remember me',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
                 TextButton(
                   onPressed: () async {
                     final email = _email.text;
@@ -108,6 +157,11 @@ class _LoginViewState extends State<LoginView> {
                         password: password,
                       );
                       print(userCredential);
+                      if (_rememberMe) {
+                        _saveUserCredentials(email, password);
+                      } else {
+                        _deleteUserCredentials();
+                      }
                       Navigator.of(context).pushNamedAndRemoveUntil(
                           '/homescreen/', (route) => false);
                     } on FirebaseAuthException catch (e) {

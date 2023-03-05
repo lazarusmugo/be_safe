@@ -113,11 +113,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                               final userData =
                                   snapshot.data!.data() as Map<String, dynamic>;
 
-                              return ChatBubble(
-                                imageUrl: userData['imageUrl'],
-                                name: userData['username'],
-                                message: message['text'],
-                                timestamp: message['timestamp'],
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ChatBubble(
+                                  userImageUrl: message['imageUrl'],
+                                  name: message['userName'],
+                                  message: message,
+                                  userId: message['userId'],
+                                ),
                               );
                             },
                           );
@@ -159,35 +162,49 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 }
 
 class ChatBubble extends StatelessWidget {
-  final String? imageUrl;
+  final String? userImageUrl;
   final String? name;
-  final String? message;
-  final Timestamp? timestamp;
+  final Map<String, dynamic>? message;
+  final String? userId;
 
   const ChatBubble({
     Key? key,
-    this.imageUrl,
+    this.userImageUrl,
     this.name,
     this.message,
-    this.timestamp,
+    this.userId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser!;
+    final isCurrentUser = currentUser.uid == userId;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment:
+          isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundImage: NetworkImage(imageUrl ?? ''),
-        ),
+        if (!isCurrentUser)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(userImageUrl ?? ''),
+              ),
+            ],
+          )
+        else
+          const SizedBox(),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: isCurrentUser
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
               Text(
-                name ?? '',
+                message?['username'] ?? '',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -197,27 +214,61 @@ class ChatBubble extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(20),
+                  color: isCurrentUser ? Colors.blue : Colors.grey.shade200,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(20),
+                    topRight: const Radius.circular(20),
+                    bottomLeft: isCurrentUser
+                        ? const Radius.circular(20)
+                        : const Radius.circular(0),
+                    bottomRight: isCurrentUser
+                        ? const Radius.circular(0)
+                        : const Radius.circular(20),
+                  ),
                 ),
-                child: Text(
-                  message ?? '',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                timestamp != null
-                    ? DateFormat('MMM d, h:mm a').format(timestamp!.toDate())
-                    : '',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message?['text'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      DateFormat('dd MMM kk:mm').format(
+                          (message?['timestamp'] as Timestamp).toDate()),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
+        if (isCurrentUser)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(userImageUrl ?? ''),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                name ?? '',
+                style: const TextStyle(
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          )
+        else
+          const SizedBox(),
       ],
     );
   }
