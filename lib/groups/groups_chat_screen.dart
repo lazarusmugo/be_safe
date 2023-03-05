@@ -68,57 +68,61 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 if (!snapshot.hasData) {
                   return const Text('Loading...');
                 }
-                return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    final message = snapshot.data!.docs[index].data()
-                        as Map<String, dynamic>;
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('groups')
+                      .doc(widget.groupId)
+                      .collection('messages')
+                      .orderBy('timestamp')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Text('Something went wrong');
+                    }
 
-                    final senderUsername = message['username'];
-                    return StreamBuilder<DocumentSnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(senderUsername)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          // Handle the error state
-                          return Center(
-                              child: Text(
-                                  "An error occurred while fetching data"));
-                        } else if (!snapshot.hasData) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-                        String? senderProfileImage;
-                        if (snapshot.hasData && snapshot.data != null) {
-                          final data = snapshot.data!.data();
-                          if (data != null) {
-                            final senderProfileImage =
-                                (data as Map<String, dynamic>)['imageUrl'];
-                            print(senderProfileImage);
-                          }
-                        }
+                    if (!snapshot.hasData) {
+                      return const Text('Loading...');
+                    }
 
-                        // add the null check here
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(senderProfileImage ??
-                                ''), // provide a default value if it is null
-                          ),
-                          title: Text(message['username'] ?? ''),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(message['text'] ?? ''),
-                              Text(
-                                DateFormat('MMM d, h:mm a').format(
-                                    (message['timestamp'] as Timestamp)
-                                        .toDate()),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                    final messages = snapshot.data!.docs
+                        .map((doc) => doc.data() as Map<String, dynamic>)
+                        .toList();
+
+                    return Expanded(
+                      child: ListView.builder(
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+
+                          return StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(message['userId'])
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                // Handle the error state
+                                return const Center(
+                                    child: Text(
+                                        "An error occurred while fetching data"));
+                              } else if (!snapshot.hasData) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
+
+                              final userData =
+                                  snapshot.data!.data() as Map<String, dynamic>;
+
+                              return ChatBubble(
+                                imageUrl: userData['imageUrl'],
+                                name: userData['username'],
+                                message: message['text'],
+                                timestamp: message['timestamp'],
+                              );
+                            },
+                          );
+                        },
+                      ),
                     );
                   },
                 );
@@ -150,6 +154,71 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ChatBubble extends StatelessWidget {
+  final String? imageUrl;
+  final String? name;
+  final String? message;
+  final Timestamp? timestamp;
+
+  const ChatBubble({
+    Key? key,
+    this.imageUrl,
+    this.name,
+    this.message,
+    this.timestamp,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundImage: NetworkImage(imageUrl ?? ''),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name ?? '',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  message ?? '',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                timestamp != null
+                    ? DateFormat('MMM d, h:mm a').format(timestamp!.toDate())
+                    : '',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
