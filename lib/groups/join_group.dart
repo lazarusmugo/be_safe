@@ -95,6 +95,16 @@ class _JoinGroupPageState extends State<JoinGroupPage> {
       'memberIds': FieldValue.arrayUnion([userId])
     });
 
+    final memberRef = groupRef.collection('group_members').doc(userId);
+    batch.set(memberRef, {
+      'isVisible': true,
+      'username': user?.displayName ?? '',
+      'userId': userId ?? '',
+      'profilePhotoUrl': user?.photoURL ?? '',
+      'location': '',
+      'visibleUntil': '',
+    });
+
     // Commit batch write
     batch.commit().then((_) {
       setState(() {

@@ -21,6 +21,16 @@ Future<String> createGroup(String groupName, String groupDescription,
     'creatorId': currentUser!.uid,
     'createdAt': FieldValue.serverTimestamp(),
   });
+  final groupId = newGroupRef.id;
+  await newGroupRef.collection('group_members').doc(currentUser!.uid).set({
+    'userId': currentUser.uid,
+    'username': currentUser.displayName,
+    'profilePhotoUrl': currentUser.photoURL,
+    'isVisible': true,
+    'location': null, // replace with the user's location if available
+    'visibleUntil':
+        null, // replace with the expiration time of visibility if applicable
+  });
 
   return newGroupRef.id;
 }
@@ -62,7 +72,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       final groupRef =
           FirebaseFirestore.instance.collection('groups').doc(groupIdResult);
       await groupRef.update({'inviteLink': link});
-
+      final currentUser = FirebaseAuth.instance.currentUser;
+      await groupRef.collection('group_members').doc(currentUser!.uid).set({
+        'isVisible': true,
+        'location': null,
+        'profilePhotoUrl': currentUser.photoURL,
+        'userId': currentUser.uid,
+        'username': currentUser.displayName,
+        'visibleUntil': null,
+      });
       // Pass groupId to _shareLink method
       _shareLink(groupIdResult);
 
