@@ -3,37 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttericon/font_awesome_icons.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 import 'package:share/share.dart';
-
-Future<String> createGroup(String groupName, String groupDescription,
-    List<String> memberIds, bool isPrivate, String? password) async {
-  final CollectionReference groupsCollection =
-      FirebaseFirestore.instance.collection('groups');
-  final User? currentUser = FirebaseAuth.instance.currentUser;
-
-  final newGroupRef = await groupsCollection.add({
-    'groupName': groupName,
-    'groupDescription': groupDescription,
-    'memberIds': memberIds,
-    'isPrivate': isPrivate,
-    'password': password,
-    'creatorId': currentUser!.uid,
-    'createdAt': FieldValue.serverTimestamp(),
-  });
-  final groupId = newGroupRef.id;
-  await newGroupRef.collection('group_members').doc(currentUser!.uid).set({
-    'userId': currentUser.uid,
-    'username': currentUser.displayName,
-    'profilePhotoUrl': currentUser.photoURL,
-    'isVisible': true,
-    'location': null, // replace with the user's location if available
-    'visibleUntil':
-        null, // replace with the expiration time of visibility if applicable
-  });
-
-  return newGroupRef.id;
-}
 
 class CreateGroupScreen extends StatefulWidget {
   const CreateGroupScreen({Key? key}) : super(key: key);
@@ -50,6 +22,60 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isPrivate = false;
   String groupId = '';
+  DateTime? visibleUntil;
+  Location location = Location();
+
+  Future<String> createGroup(String groupName, String groupDescription,
+      List<String> memberIds, bool isPrivate, String? password) async {
+    final CollectionReference groupsCollection =
+        FirebaseFirestore.instance.collection('groups');
+
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final String uid = auth.currentUser!.uid;
+    final DocumentSnapshot userDoc =
+        await firestore.collection('users').doc(uid).get();
+    final String username = userDoc.get('username');
+    final String photoUrl = userDoc.get('imageUrl');
+
+    final newGroupRef = await groupsCollection.add({
+      'groupName': groupName,
+      'groupDescription': groupDescription,
+      'memberIds': memberIds,
+      'isPrivate': isPrivate,
+      'password': password,
+      'creatorId': currentUser!.uid,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+    final groupId = newGroupRef.id;
+    Position currentPosition = await Geolocator.getCurrentPosition();
+
+    GeoPoint currentGeoPoint = GeoPoint(
+      currentPosition.latitude,
+      currentPosition.longitude,
+    );
+    await newGroupRef.collection('group_members').doc(currentUser!.uid).set({
+      'userId': currentUser.uid,
+      'username': username,
+      'profilePhotoUrl': photoUrl,
+      'isVisible': true,
+      'location':
+          currentGeoPoint, // replace with the user's location if available
+      'visibleUntil': visibleUntil != null
+          ? Timestamp.fromDate(visibleUntil!)
+          : null, // replace with the expiration time of visibility if applicable
+    });
+
+    return newGroupRef.id;
+  }
+
+  Future<Position> getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    return position;
+  }
 
   Future<void> _createGroup() async {
     if (!_formKey.currentState!.validate()) {
@@ -73,13 +99,27 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           FirebaseFirestore.instance.collection('groups').doc(groupIdResult);
       await groupRef.update({'inviteLink': link});
       final currentUser = FirebaseAuth.instance.currentUser;
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final FirebaseAuth auth = FirebaseAuth.instance;
+      final String uid = auth.currentUser!.uid;
+      final DocumentSnapshot userDoc =
+          await firestore.collection('users').doc(uid).get();
+      final String username = userDoc.get('username');
+      final String photoUrl = userDoc.get('imageUrl');
+      Position currentPosition = await Geolocator.getCurrentPosition();
+
+      GeoPoint currentGeoPoint = GeoPoint(
+        currentPosition.latitude,
+        currentPosition.longitude,
+      );
       await groupRef.collection('group_members').doc(currentUser!.uid).set({
         'isVisible': true,
-        'location': null,
-        'profilePhotoUrl': currentUser.photoURL,
+        'location': currentGeoPoint,
+        'profilePhotoUrl': photoUrl,
         'userId': currentUser.uid,
-        'username': currentUser.displayName,
-        'visibleUntil': null,
+        'username': username,
+        'visibleUntil':
+            visibleUntil != null ? Timestamp.fromDate(visibleUntil!) : null,
       });
       // Pass groupId to _shareLink method
       _shareLink(groupIdResult);
@@ -276,10 +316,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   ],
                 ),
               const SizedBox(height: 16),
-              /* ElevatedButton(
-                onPressed: _shareLink,
-                child: const Text('Share Group Link'),
-              ),*/
               ElevatedButton(
                 onPressed: _createGroup,
                 child: const Text('Create Group'),
@@ -289,5 +325,16 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         ),
       ),
     );
+  }
+}
+
+class Location {
+  final Geolocator _geolocator = Geolocator();
+
+  Future<Position> _getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    return position;
   }
 }

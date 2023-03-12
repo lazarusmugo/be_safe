@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart' as loc;
 
 class JoinGroupPage extends StatefulWidget {
   @override
@@ -16,6 +18,8 @@ class _JoinGroupPageState extends State<JoinGroupPage> {
   late String _groupName;
   late String _groupDescription;
   late String _groupId;
+  DateTime? visibleUntil;
+  Location location = Location();
 
   void _joinGroup() async {
     setState(() {
@@ -94,15 +98,27 @@ class _JoinGroupPageState extends State<JoinGroupPage> {
     batch.update(groupRef, {
       'memberIds': FieldValue.arrayUnion([userId])
     });
-
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final String uid = auth.currentUser!.uid;
+    final DocumentSnapshot userDoc =
+        await firestore.collection('users').doc(uid).get();
+    final String username = userDoc.get('username');
+    final String photoUrl = userDoc.get('imageUrl');
+    Position currentPosition = await Geolocator.getCurrentPosition();
+    GeoPoint currentGeoPoint = GeoPoint(
+      currentPosition.latitude,
+      currentPosition.longitude,
+    );
     final memberRef = groupRef.collection('group_members').doc(userId);
     batch.set(memberRef, {
       'isVisible': true,
-      'username': user?.displayName ?? '',
+      'username': username,
       'userId': userId ?? '',
-      'profilePhotoUrl': user?.photoURL ?? '',
-      'location': '',
-      'visibleUntil': '',
+      'profilePhotoUrl': photoUrl,
+      'location': currentGeoPoint,
+      'visibleUntil':
+          visibleUntil != null ? Timestamp.fromDate(visibleUntil!) : null,
     });
 
     // Commit batch write
@@ -181,5 +197,16 @@ class _JoinGroupPageState extends State<JoinGroupPage> {
         ),
       ),
     );
+  }
+}
+
+class Location {
+  final Geolocator _geolocator = Geolocator();
+
+  Future<Position> _getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    return position;
   }
 }
