@@ -95,7 +95,7 @@ class _MapsViewState extends State<MapsView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        height: 300,
+        height: MediaQuery.of(context).size.height * 0.6,
         width: double.infinity,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),

@@ -15,6 +15,8 @@ class LiveSafe extends StatefulWidget {
 }
 
 class _LiveSafeState extends State<LiveSafe> {
+  bool emergencyMode = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,36 +26,69 @@ class _LiveSafeState extends State<LiveSafe> {
         centerTitle: true,
       ),
       body: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: Container(
-              height: 100,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: 2,
-                ),
+        children: [
+          Container(
+            height: 100,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.grey.shade300,
+                width: 2,
               ),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                children: const [
-                  PoliceStationCard(onMapFunction: openMap),
-                  Hospital(onMapFunction: openMap),
-                  BusStationCard(onMapFunction: openMap),
-                  PharmacyCard(onMapFunction: openMap),
-                  HotelsCard(onMapFunction: openMap)
-                ],
+            ),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              children: const [
+                PoliceStationCard(onMapFunction: openMap),
+                Hospital(onMapFunction: openMap),
+                BusStationCard(onMapFunction: openMap),
+                PharmacyCard(onMapFunction: openMap),
+                HotelsCard(onMapFunction: openMap)
+              ],
+            ),
+          ),
+          Container(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Expanded(
+              child: MapsView(
+                key: UniqueKey(),
               ),
             ),
           ),
-          Expanded(
-              child: MapsView(
-            key: UniqueKey(),
-          )),
+          Padding(
+            padding: const EdgeInsets.all(.0),
+            child: Container(
+              width: double.maxFinite,
+              child: Flexible(
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      emergencyMode = !emergencyMode;
+                    });
+                    if (emergencyMode) {
+                      // Trigger emergency mode
+                    } else {
+                      // Stop emergency mode
+                    }
+                  },
+                  child: emergencyMode
+                      ? const Text('STOP EMERGENCY MODE')
+                      : const Text('EMERGENCY MODE'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: emergencyMode ? Colors.red : Colors.blue,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 20),
+                    textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

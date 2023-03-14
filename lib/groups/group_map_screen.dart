@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:typed_data';
-import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +6,8 @@ import 'dart:core';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:async/async.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class GroupMapScreen extends StatefulWidget {
   final String groupId;
@@ -106,8 +105,8 @@ class _GroupMapScreenState extends State<GroupMapScreen> {
         final double longitude = location.longitude;
         final LatLng latLng = LatLng(latitude, longitude);
 
-        final String name = userData['name'] ?? 'Unknown';
-        final String profilePhotoUrl = userData['profile_photo_url'] ?? '';
+        final String name = userData['username'] ?? 'Unknown';
+        final String profilePhotoUrl = userData['profilePhotoUrl'] ?? '';
         final Timestamp visibleUntil = userData['visibleUntil'] != null
             ? userData['visibleUntil']
             : Timestamp.now();
@@ -213,7 +212,7 @@ class _GroupMapScreenState extends State<GroupMapScreen> {
                         final groupMembers = snapshot.data!.docs;
 
                         // Call setState to update the markers on the map
-                        WidgetsBinding.instance!.addPostFrameCallback((_) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
                           updateMarkers(groupMembers);
                         });
 
@@ -227,15 +226,6 @@ class _GroupMapScreenState extends State<GroupMapScreen> {
                       stream: _getUserDataStream(),
                       builder: (BuildContext context,
                           AsyncSnapshot<DocumentSnapshot> snapshot) {
-                        /*  if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SizedBox(
-                              height: 80, child: Text('Loading...'));
-                        }
-                        if (snapshot.hasError) {
-                          return const SizedBox(
-                              height: 80, child: Text('Something went wrong'));
-                        }*/
                         final document = snapshot.data!;
                         final visibleUntil = document.get('visibleUntil');
                         _visibleUntil = visibleUntil;
@@ -359,6 +349,7 @@ class _GroupMapScreenState extends State<GroupMapScreen> {
                               )),
                               const SizedBox(width: 10.0),
                               Text(
+                                // ignore: unnecessary_null_comparison
                                 _customShareDuration != null
                                     ? 'Selected duration: ${_customShareDuration.difference(DateTime.now()).inHours} hours ${_customShareDuration.difference(DateTime.now()).inMinutes % 60} minutes'
                                     : 'No duration selected',
@@ -379,7 +370,7 @@ class _GroupMapScreenState extends State<GroupMapScreen> {
                         markers: markers,
                         initialCameraPosition: const CameraPosition(
                           target: LatLng(0, 0),
-                          zoom: 0.0,
+                          zoom: 2.0,
                         ),
                         zoomControlsEnabled: true, // Enables zoom controls
                         scrollGesturesEnabled: true, // Enables scroll gestures

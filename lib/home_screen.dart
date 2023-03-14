@@ -1,5 +1,4 @@
 import 'dart:collection';
-
 import 'package:be_safe/bottom%20screens/chat_page.dart';
 import 'package:be_safe/bottom%20screens/contacts_page.dart';
 import 'package:be_safe/bottom%20screens/profile_page.dart';
@@ -19,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final screens = [
     LiveSafe(),
     const ChatsPage(),
-    const ContactsPage(),
+    const Contacts(),
     const ProfilePage(),
     const SettingPage(),
   ];

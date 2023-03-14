@@ -20,7 +20,7 @@ class _ProfilePageState extends State<ProfilePage> {
   XFile? _image;
   bool _isEditing = false;
   FocusNode _usernameFocusNode = FocusNode();
-  late String imageUrl;
+  late String imageUrl = '';
 
   Future<void> _pickImage() async {
     final pickedImage =
@@ -167,8 +167,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             : const AssetImage('assets/default_user.png'))
                         as ImageProvider<Object>
                     : FileImage(File(_image!.path)),*/
-                backgroundImage: imageUrl != null && imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-
+                backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                    ? NetworkImage(imageUrl)
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
