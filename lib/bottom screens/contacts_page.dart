@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,54 +82,237 @@ class _ContactsState extends State<Contacts> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Emergency Contacts",
-          style: TextStyle(color: Colors.blue),
+        appBar: AppBar(
+          title: const Text(
+            "Emergency Contacts",
+            style: TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.blue,
+          elevation: 0,
         ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: (emergencyContacts.isEmpty)
-          ? const Center(
-              child: Text("No emergency contacts added yet."),
-            )
-          : ListView.builder(
-              itemCount: emergencyContacts.length,
-              itemBuilder: (BuildContext context, int index) {
-                Uint8List? image = emergencyContacts[index].photo;
-                String num = (emergencyContacts[index].phones.isNotEmpty)
-                    ? (emergencyContacts[index].phones.first.number)
-                    : "--";
-                return ListTile(
-                  leading: (emergencyContacts[index].photo == null)
-                      ? const CircleAvatar(child: Icon(Icons.person))
-                      : CircleAvatar(backgroundImage: MemoryImage(image!)),
-                  title: Text(
-                      "${emergencyContacts[index].name.first} ${emergencyContacts[index].name.last}"),
-                  subtitle: Text(num),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      _removeEmergencyContact(emergencyContacts[index]);
-                    },
-                  ),
-                  onTap: () {
-                    if (emergencyContacts[index].phones.isNotEmpty) {
-                      launch('tel: ${num}');
-                    }
-                  },
-                );
-              },
+        body: Column(children: [
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blue.shade400),
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: (emergencyContacts.isEmpty)
+                  ? const Center(
+                      child: Text("No emergency contacts added yet."),
+                    )
+                  : ListView.builder(
+                      itemCount: emergencyContacts.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        Uint8List? image = emergencyContacts[index].photo;
+                        String num =
+                            (emergencyContacts[index].phones.isNotEmpty)
+                                ? (emergencyContacts[index].phones.first.number)
+                                : "--";
+                        return ListTile(
+                          leading: (emergencyContacts[index].photo == null)
+                              ? const CircleAvatar(child: Icon(Icons.person))
+                              : CircleAvatar(
+                                  backgroundImage: MemoryImage(image!)),
+                          title: Text(
+                              "${emergencyContacts[index].name.first} ${emergencyContacts[index].name.last}"),
+                          subtitle: Text(num),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () async {
+                                  // Show a form to add additional details of the contact
+                                  // when the button is clicked
+                                  Contact? contactDetails =
+                                      await showDialog<Contact>(
+                                    context: context,
+                                    builder: (_) => AddContactDialog(
+                                      contact: emergencyContacts[index],
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.add),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  _removeEmergencyContact(
+                                      emergencyContacts[index]);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
             ),
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 80.0),
-        child: FloatingActionButton(
-          onPressed: () => _showContactsList(context),
-          child: const Icon(Icons.add),
-        ),
+          ),
+          const Divider(),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              padding: EdgeInsets.all(10.0),
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .collection('emergencyContacts')
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return const Text('Something went wrong');
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text('Loading');
+                  }
+                  if (snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text("No emergency contacts added yet."),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final name = snapshot.data!.docs[index]['name']['first'] +
+                          " " +
+                          snapshot.data!.docs[index]['name']['last'];
+                      final phone = (snapshot.data!.docs[index]['phone'] !=
+                                  null &&
+                              snapshot.data!.docs[index]['phone'].isNotEmpty)
+                          ? snapshot.data!.docs[index]['phone']
+                          : '--';
+
+                      final relationship =
+                          (snapshot.data!.docs[index]['relationship'] != null)
+                              ? snapshot.data!.docs[index]['relationship']
+                              : '--';
+                      return ListTile(
+                        title: Text(name),
+                        subtitle: Text("$phone | $relationship"),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            // Remove the contact from Firestore
+                            FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(FirebaseAuth.instance.currentUser!.uid)
+                                .collection('emergencyContacts')
+                                .doc(snapshot.data!.docs[index].id)
+                                .delete();
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(bottom: 80.0),
+            child: FloatingActionButton(
+              onPressed: () => _showContactsList(context),
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ]));
+  }
+}
+
+class AddContactDialog extends StatefulWidget {
+  final Contact contact;
+  const AddContactDialog({required this.contact});
+
+  @override
+  _AddContactDialogState createState() => _AddContactDialogState();
+}
+
+class _AddContactDialogState extends State<AddContactDialog> {
+  late String _relationship;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _relationship = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Add Contact Details"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            decoration: const InputDecoration(hintText: "Relationship"),
+            onChanged: (value) {
+              _relationship = value;
+            },
+          ),
+        ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () async {
+            setState(() {
+              _isSaving = true;
+            });
+
+            try {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('emergencyContacts')
+                  .add({
+                'name': {
+                  'first': widget.contact.name.first,
+                  'last': widget.contact.name.last,
+                },
+                'phone': widget.contact.phones.first.number,
+                'relationship': _relationship
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Contact saved successfully!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            } catch (error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to save contact: $error'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            } finally {
+              setState(() {
+                _isSaving = false;
+              });
+            }
+
+            Navigator.of(context).pop(widget.contact);
+          },
+          child: _isSaving
+              ? const CircularProgressIndicator()
+              : const Text("Save"),
+        ),
+      ],
     );
   }
 }
