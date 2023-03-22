@@ -6,6 +6,11 @@
         <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
         <uses-permission android:name="android.permission.READ_CONTACTS" />
         <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+        <uses-permission android:name="android.permission.WAKE_LOCK" />
+        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+        <uses-permission android:name="com.google.firebase.MESSAGING_EVENT" />
+
+
 
    <application
         android:label="be_safe"
@@ -31,6 +36,10 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <intent-filter>
+    <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+    <category android:name="android.intent.category.DEFAULT" />
+</intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
@@ -39,6 +48,31 @@
             android:value="2" />
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDKmw79zt6UTd4oLLydpoq0uUHcw8Fsp5w"/>
-     
+<!--      <service
+    android:name=".MyFirebaseMessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+    </intent-filter>
+</service> -->
+
+        <receiver android:name=".MyFirebaseMessagingReceiver"
+                  android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </receiver>
+
+
+
+<!-- Firebase Cloud Messaging Receiver -
+<receiver android:name=".MyFirebaseMessagingReceiver" 
+          android:exported="true" 
+          android:enabled="true">
+    <intent-filter>
+        <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+        <category android:name="com.example.be_safe" />
+    </intent-filter>
+</receiver>-->
     </application>
 </manifest>
