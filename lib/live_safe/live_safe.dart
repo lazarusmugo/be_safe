@@ -194,7 +194,10 @@ class _LiveSafeState extends State<LiveSafe> {
 
     Position position = await Geolocator.getCurrentPosition();
 
-    final locationUrl = 'https://maps.google.com/?q=$position';
+    final latitude = position.latitude.toString();
+    final longitude = position.longitude.toString();
+    final locationUrl =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
     final message = 'Help! I am in an emergency! Track me here $locationUrl';
     String smsResult = await sendSMS(
         message: message, recipients: recipients, sendDirect: true);

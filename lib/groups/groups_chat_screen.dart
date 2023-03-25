@@ -2,6 +2,7 @@ import 'package:be_safe/groups/group_map_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class GroupChatScreen extends StatefulWidget {
@@ -149,11 +150,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: ChatBubble(
-                                      userImageUrl: message['imageUrl'],
-                                      name: message['userName'],
-                                      message: message,
-                                      userId: message['userId'],
+                                    child: GestureDetector(
+                                      onLongPress: () {
+                                        Clipboard.setData(ClipboardData(
+                                            text: message.toString()));
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    'Message copied to clipboard')));
+                                      },
+                                      child: ChatBubble(
+                                        userImageUrl: message['imageUrl'],
+                                        name: message['userName'],
+                                        message: message,
+                                        userId: message['userId'],
+                                      ),
                                     ),
                                   );
                                 },
