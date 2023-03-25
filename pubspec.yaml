@@ -71,8 +71,10 @@ dependencies:
   flutter_sensors: ^1.0.1
   sensors: ^2.0.3
   shake: ^2.2.0
-  firebase_messaging: ^14.3.0
   flutter_local_notifications: ^13.0.0
+  firebase_messaging: ^14.3.0
+  flutter_sms: ^2.3.3
+    
   
      
   

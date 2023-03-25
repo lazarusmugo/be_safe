@@ -9,6 +9,8 @@
         <uses-permission android:name="android.permission.WAKE_LOCK" />
         <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
         <uses-permission android:name="com.google.firebase.MESSAGING_EVENT" />
+        <uses-permission android:name="android.permission.SEND_SMS" />
+
 
 
 
@@ -28,6 +30,8 @@
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
                  to determine the Window background behind the Flutter UI. -->
+
+
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
@@ -48,31 +52,35 @@
             android:value="2" />
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDKmw79zt6UTd4oLLydpoq0uUHcw8Fsp5w"/>
-<!--      <service
+     <service
     android:name=".MyFirebaseMessagingService"
     android:exported="false">
     <intent-filter>
         <action android:name="com.google.firebase.MESSAGING_EVENT" />
     </intent-filter>
-</service> -->
+</service> 
 
-        <receiver android:name=".MyFirebaseMessagingReceiver"
+     <!--    <receiver android:name=".MyFirebaseMessagingReceiver"
                   android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </receiver>
+        </receiver> -->
 
-
-
-<!-- Firebase Cloud Messaging Receiver -
-<receiver android:name=".MyFirebaseMessagingReceiver" 
+<service
+  android:name=".MyFirebaseInstanceIDService"
+  android:exported="false">
+  <intent-filter>
+    <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+  </intent-filter>
+</service>
+ <receiver android:name=".MyFirebaseMessagingReceiver" 
           android:exported="true" 
           android:enabled="true">
     <intent-filter>
         <action android:name="com.google.android.c2dm.intent.RECEIVE" />
         <category android:name="com.example.be_safe" />
     </intent-filter>
-</receiver>-->
+</receiver> 
     </application>
 </manifest>

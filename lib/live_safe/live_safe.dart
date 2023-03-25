@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:be_safe/live_safe/bus_station_card.dart';
-import 'package:be_safe/live_safe/fcm_service.dart';
 import 'package:be_safe/live_safe/hospital_card.dart';
 import 'package:be_safe/live_safe/hotels_card.dart';
 import 'package:be_safe/live_safe/pharmacy_card.dart';
@@ -17,6 +16,11 @@ import '../views/maps_view.dart';
 import 'package:shake/shake.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_sms/flutter_sms.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,18 +38,18 @@ class _LiveSafeState extends State<LiveSafe> {
   int shakeCount = 0;
   DateTime? lastShakeTime;
   ShakeDetector? shakeDetector;
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   @override
   void initState() {
     super.initState();
 
     startShakeDetector();
-    // requestPermission();
+    checkEmergencyModeAndSendMessage();
     requestNotificationPermission();
     FirebaseMessaging.instance.requestPermission();
     Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    sendNotificationToDevice();
     // Set up a method to handle incoming messages when the app is in the foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('Received message in foreground: ${message.notification?.title}');
@@ -80,48 +84,6 @@ class _LiveSafeState extends State<LiveSafe> {
     }
   }
 
-  Future<void> sendNotificationToDevice() async {
-    FirebaseMessaging _fcm = FirebaseMessaging.instance;
-    _fcm.setAutoInitEnabled(true);
-    String? fcmToken = await _fcm.getToken();
-
-    if (fcmToken != null) {
-      print("FCM token: $fcmToken");
-      try {
-        // ignore: prefer_const_constructors
-        var android = AndroidNotificationDetails(
-          'channelId',
-          'channelName',
-          // 'channelDescription',
-          importance: Importance.high,
-          priority: Priority.high,
-        );
-
-        var platform = NotificationDetails(android: android);
-
-        _fcm.sendMessage(
-          to: fcmToken,
-          data: {
-            'title': 'Test',
-            'body': 'Test',
-          },
-        );
-        await FlutterLocalNotificationsPlugin().show(
-          0,
-          'Test notification',
-          'This is a test notification',
-          platform,
-        );
-        print('Notification sent successfully to device with token $fcmToken');
-      } catch (e) {
-        print(
-            'Error sending notification to device with token $fcmToken: ${e.toString()}');
-      }
-    } else {
-      print('Unable to retrieve FCM token');
-    }
-  }
-
   void startShakeDetector() {
     shakeDetector = ShakeDetector.autoStart(
       shakeThresholdGravity: 5,
@@ -135,7 +97,6 @@ class _LiveSafeState extends State<LiveSafe> {
     setState(() {
       emergencyMode = true;
       shakeCount = 0;
-      sendNotificationToDevice();
     });
     // Execute code to activate emergency mode here
     // ...
@@ -158,10 +119,19 @@ class _LiveSafeState extends State<LiveSafe> {
     } catch (e) {
       print('Error adding user token: $e');
     }
-    sendNotificationToDevice();
-    void checkEmergencyModeAndSendNotifications(
-        String userId, String location) {
-      if (emergencyMode == true) {}
+
+    Timer.periodic(Duration(minutes: 1), (timer) {
+      sendEmergencySms();
+    });
+  }
+
+  void checkEmergencyModeAndSendMessage() async {
+    {
+      if (emergencyMode == true) {
+        Timer.periodic(Duration(seconds: 10), (timer) {
+          sendEmergencySms();
+        });
+      }
     }
   }
 
@@ -171,6 +141,90 @@ class _LiveSafeState extends State<LiveSafe> {
     });
     // Execute code to stop emergency mode here
     // ...
+  }
+
+  void sendEmergencySms() async {
+    final status = await ph.Permission.sms.request();
+
+    if (status != ph.PermissionStatus.granted) {
+      // Permission denied, handle the error
+      throw Exception('SMS permission not granted');
+    }
+    print('permission status for smsPermission');
+    final User? user = FirebaseAuth.instance.currentUser;
+    final userDoc =
+        FirebaseFirestore.instance.collection('users').doc(user?.uid);
+    final userSnap = await userDoc.get();
+    final emergencyContacts =
+        userSnap.reference.collection('emergencyContacts');
+    final groups = FirebaseFirestore.instance.collection('groups');
+
+    // Get emergency contacts phone numbers
+    final contactsPhoneNumbers = await emergencyContacts.get().then(
+        (snapshot) =>
+            snapshot.docs.map((doc) => doc['phone'] as String).toList());
+
+    print('contacts are $contactsPhoneNumbers');
+    // Get group members phone numbers
+    final groupDocs = await groups.get();
+    final groupMembersPhoneNumbers = <String>{};
+    final groupsUserIsMemberOf = <String>{};
+    for (final groupDoc in groupDocs.docs) {
+      final memberIds =
+          List<String>.from(groupDoc['memberIds'] as List<dynamic>);
+      if (memberIds.contains(user?.uid)) {
+        groupsUserIsMemberOf.add(groupDoc.id);
+        for (final memberId in memberIds) {
+          if (memberId != user?.uid) {
+            final memberDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(memberId)
+                .get();
+            final phoneNumber = memberDoc['phone'] as String?;
+            if (phoneNumber != null) {
+              groupMembersPhoneNumbers.add(phoneNumber);
+            }
+          }
+        }
+      }
+    }
+    print('contacts  for groups are $groupMembersPhoneNumbers');
+    // Send SMS to all recipients
+    final recipients = [...contactsPhoneNumbers, ...groupMembersPhoneNumbers];
+
+    Position position = await Geolocator.getCurrentPosition();
+
+    final locationUrl = 'https://maps.google.com/?q=$position';
+    final message = 'Help! I am in an emergency! Track me here $locationUrl';
+    String smsResult = await sendSMS(
+        message: message, recipients: recipients, sendDirect: true);
+    print(
+        'sms status is $smsResult to $contactsPhoneNumbers and $groupMembersPhoneNumbers');
+
+    // Send message to groups user is a member of
+
+    print('group id are $groupsUserIsMemberOf');
+    for (final groupId in groupsUserIsMemberOf) {
+      final currentUser = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user?.uid)
+          .get();
+      final username = currentUser['username'] as String?;
+      final imageUrl = currentUser['imageUrl'] as String?;
+      if (username != null && imageUrl != null) {
+        FirebaseFirestore.instance
+            .collection('groups')
+            .doc(groupId)
+            .collection('messages')
+            .add({
+          'text': message,
+          'timestamp': Timestamp.now(),
+          'username': username,
+          'imageUrl': imageUrl,
+          'userId': FirebaseAuth.instance.currentUser!.uid,
+        });
+      }
+    }
   }
 
   @override
