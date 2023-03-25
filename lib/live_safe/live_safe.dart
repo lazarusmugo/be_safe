@@ -21,6 +21,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,10 +40,17 @@ class _LiveSafeState extends State<LiveSafe> {
   DateTime? lastShakeTime;
   ShakeDetector? shakeDetector;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
+  late SharedPreferences _prefs;
 
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      _prefs = prefs;
+      setState(() {
+        emergencyMode = _prefs.getBool('emergencyMode') ?? false;
+      });
+    });
 
     startShakeDetector();
     checkEmergencyModeAndSendMessage();
@@ -97,6 +105,7 @@ class _LiveSafeState extends State<LiveSafe> {
     setState(() {
       emergencyMode = true;
       shakeCount = 0;
+      _prefs.setBool('emergencyMode', true);
     });
     // Execute code to activate emergency mode here
     // ...
@@ -138,6 +147,7 @@ class _LiveSafeState extends State<LiveSafe> {
   void stopEmergencyMode() {
     setState(() {
       emergencyMode = false;
+      _prefs.setBool('emergencyMode', false);
     });
     // Execute code to stop emergency mode here
     // ...
