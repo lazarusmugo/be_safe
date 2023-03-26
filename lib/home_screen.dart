@@ -4,6 +4,7 @@ import 'package:be_safe/bottom%20screens/contacts_page.dart';
 import 'package:be_safe/bottom%20screens/profile_page.dart';
 import 'package:be_safe/bottom%20screens/settings_page.dart';
 import 'package:be_safe/live_safe/live_safe.dart';
+import 'package:be_safe/live_safe/police_maps.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const Contacts(),
     const ProfilePage(),
     const SettingPage(),
+    PoliceMapPage(),
   ];
 
   int index = 0;
@@ -41,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(Icons.contacts, size: 30),
               Icon(Icons.person, size: 30),
               Icon(Icons.settings, size: 30),
+              Icon(Icons.local_police, size: 30),
             ],
             buttonBackgroundColor: Colors.blue,
             color: Colors.blue,

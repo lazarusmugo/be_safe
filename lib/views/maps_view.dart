@@ -49,14 +49,18 @@ class _MapsViewState extends State<MapsView> {
       final groupMembersDocs = groupMembersSnapshot.docs;
       for (final doc in groupMembersDocs) {
         final memberData = doc.data() as Map<String, dynamic>;
-        final visibleUntil = memberData['visibleUntil'] as Timestamp;
+
+        final visibleUntil = memberData['visibleUntil'];
+        if (visibleUntil != null) {
+          final visibleUntilTimestamp = visibleUntil as Timestamp;
+        }
         final isVisible = memberData['isVisible'] as bool;
         final userId = memberData['userId'] as String;
         final profilePhotoUrl = memberData['profilePhotoUrl'] as String;
         final username = memberData['username'] as String;
 
         if (isVisible &&
-            visibleUntil.toDate().isAfter(DateTime.now()) &&
+            visibleUntil.toDate().isAfter(DateTime.now()) != null &&
             userId != currentUserId) {
           final member = <String, dynamic>{
             'userId': userId,

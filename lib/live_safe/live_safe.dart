@@ -132,6 +132,16 @@ class _LiveSafeState extends State<LiveSafe> {
     Timer.periodic(Duration(minutes: 1), (timer) {
       sendEmergencySms();
     });
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('emergencies')
+          .doc(user?.uid)
+          .set({'emergencyMode': true});
+      print('created collection emergencies');
+    } catch (e) {
+      print('Error adding collection emergencies $e');
+    }
   }
 
   void checkEmergencyModeAndSendMessage() async {
@@ -140,6 +150,7 @@ class _LiveSafeState extends State<LiveSafe> {
         Timer.periodic(Duration(seconds: 10), (timer) {
           sendEmergencySms();
         });
+        final User? user = FirebaseAuth.instance.currentUser;
       }
     }
   }
@@ -149,8 +160,16 @@ class _LiveSafeState extends State<LiveSafe> {
       emergencyMode = false;
       _prefs.setBool('emergencyMode', false);
     });
-    // Execute code to stop emergency mode here
-    // ...
+    // Update emergencyMode to false in Firebase
+    final User? user = FirebaseAuth.instance.currentUser;
+    FirebaseFirestore.instance
+        .collection('emergencies')
+        .doc(user?.uid)
+        .update({'emergencyMode': false})
+        .then((value) =>
+            print('Emergency mode deactivated for user ${user?.uid}'))
+        .catchError(
+            (error) => print('Failed to deactivate emergency mode: $error'));
   }
 
   void sendEmergencySms() async {
