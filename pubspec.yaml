@@ -74,6 +74,7 @@ dependencies:
   flutter_local_notifications: ^13.0.0
   firebase_messaging: ^14.3.0
   flutter_sms: ^2.3.3
+  cached_network_image: ^3.2.3
     
   
      
