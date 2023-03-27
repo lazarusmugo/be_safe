@@ -13,9 +13,19 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Email Verification'),
-        backgroundColor: Colors.purple,
+        title: const Text(
+          'Email Verification',
+          style: TextStyle(
+              color: Colors.white, fontSize: 35, fontFamily: 'Ubuntu'),
+        ),
         centerTitle: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(200))),
+        backgroundColor: Colors.blue,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(150),
+          child: SizedBox(),
+        ),
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -24,7 +34,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.purple,
+            Colors.white,
             Colors.blue,
           ],
         )),
@@ -35,12 +45,8 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
               height: 5,
               
             ),*/
-            const Text(
-              'Please verify your email address:',
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 50),
-            TextButton(
+
+            ElevatedButton(
               onPressed: () async {
                 final user = FirebaseAuth.instance.currentUser;
                 await user?.sendEmailVerification();
@@ -50,7 +56,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                 style: TextStyle(color: Colors.white),
               ),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context)
                     .pushNamedAndRemoveUntil('/login/', (route) => false);

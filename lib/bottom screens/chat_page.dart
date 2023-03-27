@@ -105,17 +105,27 @@ class _ChatsPageState extends State<ChatsPage> {
             itemCount: groups.length,
             itemBuilder: (context, index) {
               final group = groups[index];
-              return ListTile(
-                title: Text(group['groupName']),
-                subtitle: Text(group['groupDescription']),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GroupChatScreen(groupId: group.id),
-                    ),
-                  );
-                },
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  side: BorderSide(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                ),
+                child: ListTile(
+                  title: Text(group['groupName']),
+                  subtitle: Text(group['groupDescription']),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            GroupChatScreen(groupId: group.id),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           );

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:be_safe/views/login_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -161,12 +162,6 @@ class _ProfilePageState extends State<ProfilePage> {
               child: CircleAvatar(
                 radius: 80,
                 backgroundColor: Colors.grey[300],
-                /* backgroundImage: _image == null
-                    ? (user.photoURL != null
-                            ? NetworkImage(user.photoURL!)
-                            : const AssetImage('assets/default_user.png'))
-                        as ImageProvider<Object>
-                    : FileImage(File(_image!.path)),*/
                 backgroundImage: imageUrl != null && imageUrl.isNotEmpty
                     ? NetworkImage(imageUrl)
                     : null,
@@ -195,6 +190,51 @@ class _ProfilePageState extends State<ProfilePage> {
             ElevatedButton(
               onPressed: _isEditing ? _submitForm : null,
               child: const Text('Save'),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () async {
+                // Show confirmation dialog
+                final confirmLogout = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Confirm Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+                );
+
+                // If user confirmed logout, sign out and navigate to login page
+                if (confirmLogout == true) {
+                  try {
+                    await FirebaseAuth.instance.signOut();
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Logged out successfully')),
+                    );
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginView()),
+                      (route) => false,
+                    );
+                  } catch (e) {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to logout: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Logout'),
             ),
           ],
         ),

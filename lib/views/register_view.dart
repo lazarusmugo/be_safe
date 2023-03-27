@@ -30,9 +30,19 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
-        backgroundColor: Colors.purple,
+        title: const Text(
+          'Register',
+          style: TextStyle(
+              color: Colors.white, fontSize: 35, fontFamily: 'Ubuntu'),
+        ),
         centerTitle: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(200))),
+        backgroundColor: Colors.blue,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(150),
+          child: SizedBox(),
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -40,108 +50,113 @@ class _RegisterViewState extends State<RegisterView> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.purple,
+            Colors.white,
             Colors.blue,
           ],
         )),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(15.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 5,
-                ),
-                TextField(
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                  controller: _email,
-                  keyboardType: TextInputType.emailAddress,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(25.0),
-                      borderSide: const BorderSide(
-                        color: Colors.white,
+            child: Form(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  TextFormField(
+                    style: const TextStyle(color: Colors.black, fontSize: 20),
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      fillColor: Colors.blue,
+                      hintText: 'Enter your email',
+                      hintStyle: const TextStyle(
+                        fontSize: 20.0,
                       ),
                     ),
-                    fillColor: Colors.transparent,
-                    hintText: 'Enter your email',
-                    hintStyle:
-                        const TextStyle(fontSize: 20.0, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TextField(
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                  controller: _password,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30.0),
-                      borderSide: const BorderSide(
-                        color: Colors.white,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    hintText: 'Enter your password',
-                    hintStyle:
-                        const TextStyle(fontSize: 20.0, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                TextButton(
-                  onPressed: () async {
-                    final email = _email.text;
-                    final password = _password.text;
-
-                    try {
-                      final userCredential = await FirebaseAuth.instance
-                          .createUserWithEmailAndPassword(
-                        email: email,
-                        password: password,
-                      );
-                      print(userCredential);
-                    } on FirebaseAuthException catch (e) {
-                      if (e.code == 'weak-password') {
-                        print('weak password');
-                      } else if (e.code == 'email-already-in-use') {
-                        print('email already in use');
-                      } else if (e.code == 'invalid-email') {
-                        print('invalid email');
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
                       }
-                    }
-                  },
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+                      return null;
+                    },
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .pushNamedAndRemoveUntil('/login/', (route) => false);
-                  },
-                  child: const Text(
-                    'Already Registered? Login here',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    style: const TextStyle(color: Colors.black, fontSize: 20),
+                    controller: _password,
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your password',
+                      hintStyle: const TextStyle(
+                        fontSize: 20.0,
+                      ),
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/verifyEmail/', (route) => false);
-                  },
-                  child: const Text('Verify your email ',
-                      style: TextStyle(color: Colors.white, fontSize: 20)),
-                )
-              ],
+                  const SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final email = _email.text;
+                        final password = _password.text;
+
+                        try {
+                          final userCredential = await FirebaseAuth.instance
+                              .createUserWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          );
+                          print(userCredential);
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == 'weak-password') {
+                            print('weak password');
+                          } else if (e.code == 'email-already-in-use') {
+                            print('email already in use');
+                          } else if (e.code == 'invalid-email') {
+                            print('invalid email');
+                          }
+                        }
+                      },
+                      child: const Text(
+                        'Register',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 100),
+                  Center(
+                    child: Column(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/login/', (route) => false);
+                          },
+                          child: const Text(
+                            'Already Registered? Login here',
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/verifyEmail/', (route) => false);
+                          },
+                          child: const Text('Verify your email ',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20)),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

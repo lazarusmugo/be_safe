@@ -48,7 +48,6 @@ dependencies:
   flutter_svg: ^1.1.0
   google_maps_flutter_web: ^0.4.0+5
   geolocator: ^9.0.2
-  provider: ^3.0.0
   contacts_service: ^0.6.3
   permission_handler: ^10.2.0
   cloud_firestore: ^4.4.3
@@ -117,6 +116,7 @@ flutter:
     - assets/pharmacy.png
     - assets/hotel.png
     - assets/default_user.png
+    - assets/logo.png
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages

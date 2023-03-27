@@ -93,126 +93,144 @@ class _ContactsState extends State<Contacts> {
         ),
         body: Column(children: [
           Expanded(
-            child: Container(
-              padding: EdgeInsets.all(10.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.blue.shade400),
-                borderRadius: BorderRadius.circular(20.0),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                padding: EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 2.0),
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: (emergencyContacts.isEmpty)
+                    ? const Center(
+                        child: Text("No emergency contacts added yet."),
+                      )
+                    : ListView.builder(
+                        itemCount: emergencyContacts.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          Uint8List? image = emergencyContacts[index].photo;
+                          String num = (emergencyContacts[index]
+                                  .phones
+                                  .isNotEmpty)
+                              ? (emergencyContacts[index].phones.first.number)
+                              : "--";
+                          return ListTile(
+                            leading: (emergencyContacts[index].photo == null)
+                                ? const CircleAvatar(child: Icon(Icons.person))
+                                : CircleAvatar(
+                                    backgroundImage: MemoryImage(image!)),
+                            title: Text(
+                                "${emergencyContacts[index].name.first} ${emergencyContacts[index].name.last}"),
+                            subtitle: Text(num),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () async {
+                                    // Show a form to add additional details of the contact
+                                    // when the button is clicked
+                                    Contact? contactDetails =
+                                        await showDialog<Contact>(
+                                      context: context,
+                                      builder: (_) => AddContactDialog(
+                                        contact: emergencyContacts[index],
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.add),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    _removeEmergencyContact(
+                                        emergencyContacts[index]);
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
               ),
-              child: (emergencyContacts.isEmpty)
-                  ? const Center(
-                      child: Text("No emergency contacts added yet."),
-                    )
-                  : ListView.builder(
-                      itemCount: emergencyContacts.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        Uint8List? image = emergencyContacts[index].photo;
-                        String num =
-                            (emergencyContacts[index].phones.isNotEmpty)
-                                ? (emergencyContacts[index].phones.first.number)
-                                : "--";
-                        return ListTile(
-                          leading: (emergencyContacts[index].photo == null)
-                              ? const CircleAvatar(child: Icon(Icons.person))
-                              : CircleAvatar(
-                                  backgroundImage: MemoryImage(image!)),
-                          title: Text(
-                              "${emergencyContacts[index].name.first} ${emergencyContacts[index].name.last}"),
-                          subtitle: Text(num),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                onPressed: () async {
-                                  // Show a form to add additional details of the contact
-                                  // when the button is clicked
-                                  Contact? contactDetails =
-                                      await showDialog<Contact>(
-                                    context: context,
-                                    builder: (_) => AddContactDialog(
-                                      contact: emergencyContacts[index],
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.add),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  _removeEmergencyContact(
-                                      emergencyContacts[index]);
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
             ),
           ),
           const Divider(),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              padding: EdgeInsets.all(10.0),
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser!.uid)
-                    .collection('emergencyContacts')
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError) {
-                    return const Text('Something went wrong');
-                  }
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Text('Loading');
-                  }
-                  if (snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text("No emergency contacts added yet."),
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final name = snapshot.data!.docs[index]['name']['first'] +
-                          " " +
-                          snapshot.data!.docs[index]['name']['last'];
-                      final phone = (snapshot.data!.docs[index]['phone'] !=
-                                  null &&
-                              snapshot.data!.docs[index]['phone'].isNotEmpty)
-                          ? snapshot.data!.docs[index]['phone']
-                          : '--';
-
-                      final relationship =
-                          (snapshot.data!.docs[index]['relationship'] != null)
-                              ? snapshot.data!.docs[index]['relationship']
-                              : '--';
-                      return ListTile(
-                        title: Text(name),
-                        subtitle: Text("$phone | $relationship"),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            // Remove the contact from Firestore
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .collection('emergencyContacts')
-                                .doc(snapshot.data!.docs[index].id)
-                                .delete();
-                          },
-                        ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 2.0),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                padding: EdgeInsets.all(20.0),
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .collection('emergencyContacts')
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return const Text('Something went wrong');
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text('Loading');
+                    }
+                    if (snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                        child: Text("No emergency contacts added yet."),
                       );
-                    },
-                  );
-                },
+                    }
+
+                    return ListView.builder(
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final name = snapshot.data!.docs[index]['name']
+                                ['first'] +
+                            " " +
+                            snapshot.data!.docs[index]['name']['last'];
+                        final phone = (snapshot.data!.docs[index]['phone'] !=
+                                    null &&
+                                snapshot.data!.docs[index]['phone'].isNotEmpty)
+                            ? snapshot.data!.docs[index]['phone']
+                            : '--';
+
+                        final relationship =
+                            (snapshot.data!.docs[index]['relationship'] != null)
+                                ? snapshot.data!.docs[index]['relationship']
+                                : '--';
+
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            side: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                          ),
+                          child: ListTile(
+                            title: Text(name),
+                            subtitle: Text("$phone | $relationship"),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                // Remove the contact from Firestore
+                                FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                                    .collection('emergencyContacts')
+                                    .doc(snapshot.data!.docs[index].id)
+                                    .delete();
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -350,20 +368,6 @@ class _ContactsListState extends State<ContactsList> {
   }
 
   void _addToEmergencyContacts() {
-    //async {
-    /* for (final contact in _selectedContacts) {
-      if (!widget.emergencyContacts.contains(contact)) {
-        widget.emergencyContacts.add(contact);
-      }
-    }
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> selectedContacts = widget.emergencyContacts
-        .map((contact) =>
-            "${contact.name.first} ${contact.name.last} ${contact.phones.first.number}")
-        .toList();
-    await prefs.setStringList('emergencyContacts', selectedContacts);
-    _selectedContacts.clear();
-    Navigator.of(context).pop(widget.emergencyContacts);*/
     widget.onContactsSelected(_selectedContacts);
     setState(() {
       _selectedContacts.clear();

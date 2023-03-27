@@ -1,6 +1,8 @@
 import 'package:be_safe/home_screen.dart';
 import 'package:be_safe/views/login_view.dart';
+import 'package:be_safe/views/police_registration.dart';
 import 'package:be_safe/views/register_view.dart';
+import 'package:be_safe/views/splash_screen.dart';
 import 'package:be_safe/views/verify_email_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,12 +21,13 @@ void main() {
             ),
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(),
+      home: SplashScreen(),
       routes: {
         '/login/': (context) => const LoginView(),
         '/register/': (context) => const RegisterView(),
         '/verifyEmail/': (context) => const VerifyEmailView(),
         '/homescreen/': (context) => const HomeScreen(),
+        '/police_registration/': (context) => PoliceRegistrationPage(),
       },
       debugShowCheckedModeBanner: false,
     ),

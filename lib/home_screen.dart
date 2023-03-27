@@ -21,8 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const ChatsPage(),
     const Contacts(),
     const ProfilePage(),
-    const SettingPage(),
-    PoliceMapPage(),
   ];
 
   int index = 0;
@@ -42,8 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(Icons.chat, size: 30),
               Icon(Icons.contacts, size: 30),
               Icon(Icons.person, size: 30),
-              Icon(Icons.settings, size: 30),
-              Icon(Icons.local_police, size: 30),
             ],
             buttonBackgroundColor: Colors.blue,
             color: Colors.blue,
