@@ -107,10 +107,10 @@ class _ChatsPageState extends State<ChatsPage> {
               final group = groups[index];
               return Card(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(20.0),
                   side: BorderSide(
                     color: Colors.grey,
-                    width: 1.0,
+                    width: 2.0,
                   ),
                 ),
                 child: ListTile(

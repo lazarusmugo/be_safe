@@ -10,17 +10,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 3), () {
-      Navigator.pushNamed(context, '/home');
+    Timer(Duration(seconds: 1), () {
+      Navigator.pushNamed(context, '/home/');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Image.asset('assets/logo.png'),
-      ),
+    return Container(
+      child: Image.asset('assets/logo.png'),
     );
   }
 }
